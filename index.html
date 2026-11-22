@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=2; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=3; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -539,6 +539,8 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
 .ob-top { padding-left: max(1rem, calc((100% - 34rem) / 2)); padding-right: max(1rem, calc((100% - 34rem) / 2)); }
 .ob-panel.vault .ob-input:disabled, .ob-panel.vault .ob-seg button:disabled { opacity: .55; }
 .ob-form[data-off] { opacity: .85; }
+
+.ob[data-chrome="s"] .ob-bar, .ob[data-chrome="s"] [data-back] { visibility: hidden; }
 </style>
 </head>
 <body>
@@ -3684,7 +3686,7 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '4.1.0';
+  const VERSION = '4.1.1';
 
   /* ======================================================================
      RESUMO
@@ -4385,7 +4387,7 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
   const DEF = {
     /* 1 — Chegada: moedas caindo, Tim quicando */
     intro: {
-      tr: 'zoom', bg: 'green', center: true, chrome: false,
+      tr: 'zoom', bg: 'green', center: true, chrome: 'skip',
       html: () => fx(14, 'coins') + `
         <div data-st="pop">${tim('happy', 't-bounce')}</div>
         <h1 class="ob-big" data-st="up">Oi! Eu sou o Tim.</h1>
@@ -4768,8 +4770,8 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
     stage.appendChild(p);
     C.Icons.hydrate(p);
     root.dataset.bg = def.bg || 'paper';
-    root.dataset.chrome = def.chrome === false ? '0' : '1';
-    root.querySelector('[data-back]').hidden = !(trail.length && def.chrome !== false);
+    root.dataset.chrome = def.chrome === false ? '0' : def.chrome === 'skip' ? 's' : '1';
+    root.querySelector('[data-back]').hidden = !(trail.length && def.chrome !== false && def.chrome !== 'skip');
     paintProgress(id);
     const cta = p.querySelector('.ob-cta');
     let handler = null;
@@ -4853,7 +4855,7 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
     trail = []; cur = null; panel = null; busy = false;
     root = doc.createElement('div');
     root.className = 'ob'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'Apresentação do Caderninho');
-    root.dataset.bg = 'green'; root.dataset.chrome = '0';
+    root.dataset.bg = 'green'; root.dataset.chrome = 's';
     root.innerHTML = `<div class="ob-top"><button type="button" class="ob-ico-btn" data-back aria-label="Voltar" hidden>${BACK}</button><div class="ob-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div><button type="button" class="ob-skip" data-skip>${replay ? 'Fechar' : 'Pular'}</button></div><div class="ob-stage"></div>`;
     stage = root.querySelector('.ob-stage');
     doc.body.appendChild(root); doc.body.classList.add('ob-open');
@@ -4861,6 +4863,17 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
     root.querySelector('[data-skip]').addEventListener('click', () => { if (!busy || true) finish({ discard: replay }); });
     go('intro', 1);
   }
+
+  /* Links de aba (#/contas...) dentro de um iframe srcdoc (APK) recarregavam o invólucro inteiro.
+     Aqui o app muda o hash sozinho, sem deixar o navegador navegar. Em navegador comum faz o mesmo que antes. */
+  doc.addEventListener('click', (e) => {
+    const a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a || e.defaultPrevented || e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    const h = a.getAttribute('href');
+    if (!h || h === '#') return;
+    e.preventDefault();
+    if (global.location.hash !== h) global.location.hash = h;
+  }, true);
 
   C.Onboarding = { start };
   C.Actions = C.Actions || {};
