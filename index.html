@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=6; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=8; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caderninho · Purytalent</title>
@@ -1055,6 +1055,10 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
 /* quem pediu menos movimento não paga por animação infinita */
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-iteration-count: 1 !important; } }
 
+details.adv { margin-top: .4rem; } details.adv > summary { cursor: pointer; font-weight: 700; font-size: .9rem; color: var(--ink-soft, inherit); padding: .6rem .2rem; list-style: none; }
+details.adv > summary::-webkit-details-marker { display: none; } details.adv > summary::after { content: ' ▾'; } details.adv[open] > summary::after { content: ' ▴'; }
+details.adv .card-actions { padding-top: .2rem; }
+
 </style>
 </head>
 <body>
@@ -1155,8 +1159,8 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
   const defaults = {
     sync: {
       provider: 'supabase',
-      url: '',       // ex.: 'https://abcdxyz.supabase.co'  (precisa ser https)
-      anonKey: '',   // ex.: 'eyJhbGciOi...'
+      url: 'https://brzigqqpqiycooycdubd.supabase.co',
+      anonKey: 'sb_publishable_mukxIvKDZQkke2fUmkIQgg_AvITxnv9',
       table: 'caderninho_data',
     },
   };
@@ -2689,9 +2693,9 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
     const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const to = setTimeout(() => ctl && ctl.abort(), TIMEOUT);
     try {
-      const res = await fetch(cfg.url.replace(/\/+$/, '') + path, {
+      const res = await fetch(cfg.url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '') + path, {
         method: opts.method || 'GET',
-        headers: Object.assign({ apikey: cfg.anonKey, 'Content-Type': 'application/json' }, opts.token ? { Authorization: 'Bearer ' + opts.token } : { Authorization: 'Bearer ' + cfg.anonKey }, opts.headers || {}),
+        headers: Object.assign({ apikey: cfg.anonKey, 'Content-Type': 'application/json' }, opts.token ? { Authorization: 'Bearer ' + opts.token } : (/^eyJ/.test(cfg.anonKey) ? { Authorization: 'Bearer ' + cfg.anonKey } : {}), opts.headers || {}),
         body: opts.body ? JSON.stringify(opts.body) : undefined,
         signal: ctl ? ctl.signal : undefined,
       });
@@ -4410,7 +4414,7 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
       <div class="ph">
         <div>
           <h1 class="page-title">Seu perfil</h1>
-          <p class="page-sub">Ajustes, Pix e cópia de segurança.</p>
+          <p class="page-sub">Ajustes, Pix e privacidade.</p>
         </div>
       </div>
 
@@ -4457,23 +4461,14 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
         ${canInstall ? row('phone', 'Instalar o app', 'Atalho na tela inicial, abre sem barra do navegador', act('app:install', 'Instalar', 'primary')) : ''}
       </section>
 
-      <h2 class="section-title">${I('shield')} Seus dados</h2>
+      <h2 class="section-title">${I('shield')} Sua privacidade</h2>
       <section class="card">
-        ${!st.ok ? `<div class="banner bad">${I('alert')}<span>${esc(st.error || 'Não consegui guardar os dados neste aparelho.')} Faça uma cópia de segurança agora.</span></div>` : ''}
-        ${row('file', 'Guardados neste aparelho', `${counts}<br>Última cópia de segurança: ${ago(p.lastBackupAt)}`)}
-        <div class="card-actions" style="display:grid;gap:.5rem">
-          ${act('data:export', I('download') + ' Salvar cópia de segurança (.json)', 'primary')}
-          <div class="two-up">${act('data:import', I('upload') + ' Restaurar cópia')}${act('data:csv', I('file') + ' Baixar planilha (.csv)')}</div>
-        </div>
-        <input type="file" id="importFile" accept=".json,application/json" data-change="data:importfile" hidden>
-        ${UI.help('A <b>cópia de segurança</b> é um arquivo com tudo o que você anotou. Guarde no WhatsApp, e-mail ou Drive. Se trocar de celular ou limpar o navegador, é só <b>restaurar</b>. Limpar os dados do navegador apaga o app daqui!', { tone: 'warn', title: 'Faça uma cópia de vez em quando', force: true })}
-        ${safety ? row('history', 'Voltar ao que estava antes', `Antes da última troca de dados (${safety.counts.t} anotações, ${safety.counts.b} contas, ${safety.counts.g} metas)`, act('data:undo', 'Voltar')) : ''}
-        ${row('trash', 'Apagar tudo', 'Remove anotações, contas e metas', act('data:clear', 'Apagar', 'danger-ghost'))}
+        ${UI.emptyState('shield', 'Em breve', 'Aqui vamos explicar, em palavras simples, como os seus dados são guardados e protegidos.')}
       </section>
 
       <h2 class="section-title">${I('cloud')} Conta e nuvem</h2>
       <section class="card">
-        ${!cfgOk ? `${UI.emptyState('cloud', 'Conta e nuvem: em breve', 'Por enquanto, seus dados ficam só neste aparelho. Use a cópia de segurança acima para não perder nada.')}`
+        ${!cfgOk ? `${UI.emptyState('cloud', 'Conta e nuvem: em breve', 'Por enquanto, seus dados ficam só neste aparelho.')}`
           : sync.loggedIn ? `
             ${row('mail', esc(sync.email), sync.busy ? 'Sincronizando…' : sync.error ? esc(sync.error) : sync.lastSync ? 'Sincronizado ' + ago(sync.lastSync) : 'Conectado')}
             <div class="two-up">${act('account:sync', I('refresh') + ' Sincronizar', 'primary')}${act('account:signout', I('logout') + ' Sair')}</div>`
@@ -4628,14 +4623,18 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
       out.push(`<div class="banner bad" role="alert">${I('alert')}<span><b>Seus dados não estão sendo guardados.</b> ${esc(st.error || '')} Salve uma cópia de segurança agora.</span><button type="button" class="btn small" data-action="data:export">Salvar</button></div>`);
     }
     if (st.recovered && !dismissed.has('recovered')) {
-      const msg = st.recovered === 'none' ? 'Os dados salvos estavam danificados e não foi possível recuperar. Se você tem uma cópia de segurança, restaure em Perfil.' : `Os dados estavam danificados e foram recuperados de ${esc(st.recovered)}.`;
+      const msg = st.recovered === 'none' ? 'Os dados salvos estavam danificados e não foi possível recuperar. Se você tem uma conta, entre nela para recuperar seus dados.' : `Os dados estavam danificados e foram recuperados de ${esc(st.recovered)}.`;
       out.push(`<div class="banner warn" role="status">${I('shield')}<span>${msg}</span><button type="button" class="btn small" data-action="banner:dismiss" data-b="recovered">Ok</button></div>`);
     }
     if (st.dropped > 0 && !dismissed.has('dropped')) {
       out.push(`<div class="banner warn" role="status">${I('alert')}<span>${st.dropped} item(ns) com defeito foram ignorados ao abrir. O arquivo original foi guardado por segurança.</span><button type="button" class="btn small" data-action="banner:dismiss" data-b="dropped">Ok</button></div>`);
     }
     const n = s.transactions.length;
-    if (st.ok && n >= 10 && !dismissed.has('backup') && Date.now() - (s.profile.lastBackupAt || 0) > 14 * 86400000 && currentRoute() !== 'perfil') {
+    const cloud = C.Sync && C.Sync.isConfigured() ? C.Sync.status() : null;
+    if (cloud && !cloud.loggedIn && st.ok && n >= 5 && !dismissed.has('account') && currentRoute() !== 'perfil') {
+      out.push(`<div class="banner ok" role="status">${I('cloud')}<span><b>Crie sua conta</b> e seus dados ficam guardados na nuvem, mesmo se você trocar de celular.</span><button type="button" class="btn small primary" data-action="account:open">Criar</button><button type="button" class="icon-btn" data-action="banner:dismiss" data-b="account" aria-label="Fechar">${I('x')}</button></div>`);
+    }
+    if (st.ok && !(cloud && (cloud.loggedIn || !dismissed.has('account') && n >= 5)) && false && n >= 10 && !dismissed.has('backup') && Date.now() - (s.profile.lastBackupAt || 0) > 14 * 86400000 && currentRoute() !== 'perfil') {
       out.push(`<div class="banner ok" role="status">${I('download')}<span>${s.profile.lastBackupAt ? 'Faz tempo que você não salva uma cópia.' : 'Você ainda não salvou uma cópia de segurança.'}</span><button type="button" class="btn small primary" data-action="data:export">Salvar</button><button type="button" class="icon-btn" style="width:2.2rem;height:2.2rem" data-action="banner:dismiss" data-b="backup" aria-label="Dispensar">${I('x')}</button></div>`);
     }
     return out.join('');
@@ -4726,7 +4725,7 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
     global.addEventListener('appinstalled', () => { global.__cadInstall = null; render(); });
     Store.subscribe(render);
     Store.on('storage:error', () => { C.UI.toast('Não consegui guardar os dados neste aparelho!', 'error'); render(); });
-    if (C.Sync) C.Sync.onChange(() => { paintNet(); if (currentRoute() === 'perfil') render(); });
+    if (C.Sync) { let wasIn = C.Sync.isLoggedIn(); C.Sync.onChange(() => { paintNet(); const now = C.Sync.isLoggedIn(); if (currentRoute() === 'perfil' || now !== wasIn) { wasIn = now; render(); } }); }
     setInterval(checkDay, 60000);
     global.addEventListener('error', (e) => { console.error(e.error || e.message); });
     global.addEventListener('unhandledrejection', (e) => { console.error(e.reason); });
