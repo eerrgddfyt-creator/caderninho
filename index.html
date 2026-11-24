@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=5; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=6; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caderninho · Purytalent</title>
@@ -3127,6 +3127,13 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
 
   /** Baixa um arquivo gerado no aparelho. */
   function download(filename, text, mime) {
+    const NB = global.CaderninhoNative;   // dentro do app Android: a casca grava em Downloads
+    if (NB && typeof NB.saveFile === 'function') {
+      let ok = false;
+      try { ok = NB.saveFile(String(filename), String(mime || 'text/plain'), String(text)); } catch (e) { ok = false; }
+      if (!ok) throw new Error('o aparelho não deixou gravar em Downloads');
+      return;
+    }
     const blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -4518,14 +4525,14 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
     try {
       UI.download(`caderninho-copia-${stamp()}.json`, Store.exportJSON(), 'application/json;charset=utf-8');
       Store.setProfile({ lastBackupAt: Date.now() });
-      UI.toast('Cópia salva. Guarde o arquivo em um lugar seguro.', 'success');
+      UI.toast('Cópia salva' + (global.CaderninhoNative ? ' na pasta Downloads' : '') + '. Guarde o arquivo em um lugar seguro.', 'success');
     } catch (e) { UI.toast('Não consegui criar a cópia: ' + e.message, 'error'); }
   };
   C.Actions['data:csv'] = () => {
     const list = Store.get().transactions;
     if (!list.length) { UI.toast('Ainda não há anotações para baixar', 'info'); return; }
     UI.download(`caderninho-anotacoes-${stamp()}.csv`, Store.exportCSV(list), 'text/csv;charset=utf-8');
-    UI.toast('Planilha salva. Abre no Excel e no Google Planilhas.', 'success');
+    UI.toast('Planilha salva' + (global.CaderninhoNative ? ' na pasta Downloads' : '') + '. Abre no Excel e no Google Planilhas.', 'success');
   };
   C.Actions['data:csv-month'] = (el) => {
     const mk = el.dataset.month || U.monthKey(U.today());
@@ -4533,7 +4540,7 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
     const list = Store.txInRange(r.from, r.to);
     if (!list.length) { UI.toast('Esse mês não tem anotações', 'info'); return; }
     UI.download(`caderninho-${mk}.csv`, Store.exportCSV(list), 'text/csv;charset=utf-8');
-    UI.toast('Planilha do mês salva', 'success');
+    UI.toast('Planilha do mês salva' + (global.CaderninhoNative ? ' em Downloads' : ''), 'success');
   };
   C.Actions['data:import'] = () => { const f = document.getElementById('importFile'); if (f) { f.value = ''; f.click(); } };
   C.Actions['data:importfile'] = async (el) => {
