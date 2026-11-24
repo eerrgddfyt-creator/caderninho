@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=9; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=10; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caderninho · Purytalent</title>
@@ -2689,7 +2689,10 @@ details.adv .card-actions { padding-top: .2rem; }
     if (m.includes('valid email') || m.includes('invalid email')) return 'Esse e-mail não parece certo.';
     if (status === 401 || status === 403) return 'Sua sessão venceu. Entre de novo na conta.';
     if (status >= 500) return 'O servidor está com problema agora. Tente de novo em instantes.';
-    return 'Não deu certo. Tente de novo.';
+    if (m.includes('signups not allowed') || m.includes('signups are disabled') || m.includes('signup is disabled')) return 'O cadastro está desligado no servidor. (Supabase: ative "Allow new users to sign up" e o provedor de e-mail.)';
+    if (m.includes('provider is not enabled') || m.includes('email logins are disabled')) return 'O login por e-mail está desligado no servidor. (Supabase: ative o provedor Email.)';
+    const why = String(msg || '').replace(/\s+/g, ' ').slice(0, 90);
+    return 'Não deu certo. Tente de novo.' + (status || why ? ' (' + [status, why].filter(Boolean).join(': ') + ')' : '');
   }
 
   async function http(path, opts) {
@@ -4245,7 +4248,7 @@ details.adv .card-actions { padding-top: .2rem; }
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.3.0'; window.__CAD_VERSION = VERSION;
+  const VERSION = '5.3.1'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
