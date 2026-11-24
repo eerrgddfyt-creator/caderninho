@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=10; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=11; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caderninho · Purytalent</title>
@@ -1062,6 +1062,9 @@ details.adv .card-actions { padding-top: .2rem; }
 .ver-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .8rem .2rem 0; font-size: .82rem; opacity: .85; }
 .upd-snack { position: fixed; left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 90; display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem; border-radius: 16px; background: #1f2a24; color: #fff; box-shadow: 0 8px 28px rgba(0,0,0,.35); font-weight: 600; }
 .upd-snack span { flex: 1; } .upd-x { background: none; border: 0; color: #fff; font-size: 1.4rem; line-height: 1; padding: 0 .3rem; opacity: .7; }
+
+/* o conteúdo da apresentação some suavemente ao subir por baixo da barra do topo (não sobrepõe mais o Tim/progresso) */
+.ob-body { -webkit-mask-image: linear-gradient(to bottom, transparent calc(2.4rem + env(safe-area-inset-top, 0px)), #000 calc(3.9rem + env(safe-area-inset-top, 0px))); mask-image: linear-gradient(to bottom, transparent calc(2.4rem + env(safe-area-inset-top, 0px)), #000 calc(3.9rem + env(safe-area-inset-top, 0px))); }
 
 </style>
 </head>
@@ -4248,7 +4251,7 @@ details.adv .card-actions { padding-top: .2rem; }
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.3.1'; window.__CAD_VERSION = VERSION;
+  const VERSION = '5.3.2'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
@@ -4732,7 +4735,7 @@ details.adv .card-actions { padding-top: .2rem; }
     global.addEventListener('appinstalled', () => { global.__cadInstall = null; render(); });
     Store.subscribe(render);
     Store.on('storage:error', () => { C.UI.toast('Não consegui guardar os dados neste aparelho!', 'error'); render(); });
-    if (C.Sync) { let wasIn = C.Sync.isLoggedIn(); C.Sync.onChange(() => { paintNet(); const now = C.Sync.isLoggedIn(); if (currentRoute() === 'perfil' || now !== wasIn) { wasIn = now; render(); } }); }
+    if (C.Sync) { let wasIn = C.Sync.isLoggedIn(); C.Sync.onChange(() => { paintNet(); const now = C.Sync.isLoggedIn(), chg = now !== wasIn; wasIn = now; if (document.querySelector('.ob-panel')) return; /* não mexe na tela durante a apresentação */ if (currentRoute() === 'perfil' || chg) render(); }); }
     setInterval(checkDay, 60000);
     global.addEventListener('error', (e) => { console.error(e.error || e.message); });
     global.addEventListener('unhandledrejection', (e) => { console.error(e.reason); });
@@ -6490,10 +6493,16 @@ details.adv .card-actions { padding-top: .2rem; }
 
   /* ---------- Motor ---------- */
   const visible = () => ORDER.filter((id) => !(DEF[id].skip && DEF[id].skip(ANS)));
-  function nextId(from) { const v = visible(); const i = v.indexOf(from); return v[Math.min(v.length - 1, i + 1)]; }
+  /* Se a tela atual saiu da lista (ex.: o login some depois que a conta é criada), segue pela ordem original em vez de voltar ao início */
+  function nextId(from) {
+    const v = visible(); const i = v.indexOf(from);
+    if (i >= 0) return v[Math.min(v.length - 1, i + 1)];
+    const k = ORDER.indexOf(from);
+    return ORDER.slice(k + 1).find((id) => v.includes(id)) || v[v.length - 1];
+  }
 
   function paintProgress(id) {
-    const v = visible(); const i = Math.max(0, v.indexOf(id));
+    const v = visible(); let i = v.indexOf(id); if (i < 0) i = v.filter((x) => ORDER.indexOf(x) < ORDER.indexOf(id)).length;
     const pct = (v.length > 1 ? Math.max(4, Math.round((i / (v.length - 1)) * 100)) : 100);
     root.querySelector('.ob-bar i').style.width = pct + '%';
     const run = root.querySelector('.ob-run'); if (run) run.style.left = Math.min(96, pct) + '%';
@@ -6518,7 +6527,7 @@ details.adv .card-actions { padding-top: .2rem; }
     if (busy) return;
     dir = dir || 1; opts = opts || {};
     if (dir > 0 && cur) trail.push(cur);
-    if (dir < 0) id = trail.pop() || 'intro';
+    if (dir < 0) { id = trail.pop() || 'intro'; while (DEF[id] && DEF[id].skip && DEF[id].skip(ANS) && trail.length) id = trail.pop(); }  // voltar não reabre o login de quem já entrou
     const def = DEF[id], old = panel, p = build(id);
     busy = true;
     stage.appendChild(p);
