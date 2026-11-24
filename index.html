@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=4; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=5; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caderninho · Purytalent</title>
@@ -1044,6 +1044,17 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
 .ob-opt { backdrop-filter: none; }
 @media (prefers-reduced-motion: reduce) { .ob-panel::before, .ob-panel.center .ob-body::before { animation: none; } .ob-grid, .ob-ov { display: none; } }
 
+/* ---------- Desempenho ---------- */
+.daycard { content-visibility: auto; contain-intrinsic-size: auto 9rem; }
+/* aparelhos mais simples: sem desfoque de vidro (é o efeito mais caro da GPU) */
+html.lite .app-header, html.lite .tabbar, html.lite .overlay, html.lite .dial-scrim, html.lite .balance .split > div { backdrop-filter: none; -webkit-backdrop-filter: none; }
+html.lite .app-header { background: var(--paper); }
+html.lite .tabbar { background: var(--card); }
+html.lite .overlay { background-color: rgba(10, 20, 15, .6); }
+html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
+/* quem pediu menos movimento não paga por animação infinita */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-iteration-count: 1 !important; } }
+
 </style>
 </head>
 <body>
@@ -2065,7 +2076,7 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
 
   /* ---------- Armazenamento ---------- */
   let state = blank();
-  let lastSavedJson = null;
+  let lastSavedJson = null, prevAt = 0, snapDay = '';
   const status = { ok: true, memoryOnly: false, error: null, recovered: null, dropped: 0, persisted: null, migrated: false };
   const subscribers = [];
   const handlers = {};
@@ -2086,11 +2097,13 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
     if (!ls()) { status.ok = false; status.memoryOnly = true; status.error = 'Este navegador não deixa o app guardar dados (talvez a aba privada).'; return false; }
     const write = () => {
       safeSet(KEY, json);
-      if (lastSavedJson && lastSavedJson !== json) { try { safeSet(PREV, lastSavedJson); } catch (e) { /* a cópia anterior é um extra */ } }
+      if (lastSavedJson && lastSavedJson !== json && Date.now() - prevAt > 30000) { try { safeSet(PREV, lastSavedJson); prevAt = Date.now(); } catch (e) { /* a cópia anterior é um extra */ } }
       const snapKey = SNAP + U.today();
       const hasData = state.transactions.length || state.bills.length || state.goals.length;
-      if (hasData && safeGet(snapKey) == null) {
-        try { safeSet(snapKey, json); snapKeys().slice(SNAP_KEEP).forEach(safeDel); } catch (e) { /* idem */ }
+      if (hasData && snapDay !== snapKey) {
+        if (safeGet(snapKey) == null) {
+          try { safeSet(snapKey, json); snapKeys().slice(SNAP_KEEP).forEach(safeDel); snapDay = snapKey; } catch (e) { /* idem */ }
+        } else snapDay = snapKey;
       }
     };
     try { write(); status.ok = true; status.error = null; lastSavedJson = json; return true; } catch (e) {
@@ -4976,11 +4989,15 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
   function startTracking() {
     if (trackOn || !doc || reduced()) return;
     trackOn = true;
+    let pend = false, px = 0, py = 0;
     const move = (e) => {
       const t = (e.touches && e.touches[0]) || e;
       if (!t || t.clientX == null) return;
-      lastPtr = { x: t.clientX, y: t.clientY, at: Date.now() };
-      doc.querySelectorAll('svg.tim[data-track]').forEach((s) => aim(s, t.clientX, t.clientY));
+      px = t.clientX; py = t.clientY;
+      lastPtr = { x: px, y: py, at: Date.now() };
+      if (pend) return;               // vários toques no mesmo quadro = 1 cálculo só
+      pend = true;
+      global.requestAnimationFrame(() => { pend = false; if (doc.hidden) return; doc.querySelectorAll('svg.tim[data-track]').forEach((s) => aim(s, px, py)); });
     };
     doc.addEventListener('pointermove', move, { passive: true });
     doc.addEventListener('pointerdown', move, { passive: true });
@@ -5540,8 +5557,11 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
   document.addEventListener('input', (e) => {
     if (e.target && e.target.id === 'txSearch2') {
       tl.q = e.target.value;
-      const box = document.getElementById('txList2');
-      if (box) { const r = U.monthRange(tl.month || U.monthKey(U.today())); box.innerHTML = txListHTML(Store.txInRange(r.from, r.to)); C.Icons.hydrate(box); }
+      clearTimeout(tl._t);
+      tl._t = setTimeout(() => {      // espera o dedo parar de digitar
+        const box = document.getElementById('txList2');
+        if (box) { const r = U.monthRange(tl.month || U.monthKey(U.today())); box.innerHTML = txListHTML(Store.txInRange(r.from, r.to)); C.Icons.hydrate(box); }
+      }, 120);
     }
   });
   C.Views.lancamentos = { render: txRender, resetFilters() { tl.q = ''; tl.filter = 'all'; tl.month = null; } };
@@ -6601,6 +6621,13 @@ body.ob-open .overlay { z-index: 450; } body.ob-open .toasts { z-index: 460; bot
   C.Actions = C.Actions || {};
   C.Actions['onb:replay'] = () => start({ replay: true });
 })(typeof window !== 'undefined' ? window : globalThis);
+
+(function () {
+  try {
+    var n = navigator, low = (n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 4);
+    if (low || /[?&]lite=1/.test(location.search)) document.documentElement.classList.add('lite');
+  } catch (e) { /* ok */ }
+})();
 
 </script>
 <script>
