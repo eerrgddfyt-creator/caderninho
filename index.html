@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=8; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=9; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caderninho · Purytalent</title>
@@ -1058,6 +1058,10 @@ html.lite .dial-scrim { background: rgba(8, 18, 12, .72); }
 details.adv { margin-top: .4rem; } details.adv > summary { cursor: pointer; font-weight: 700; font-size: .9rem; color: var(--ink-soft, inherit); padding: .6rem .2rem; list-style: none; }
 details.adv > summary::-webkit-details-marker { display: none; } details.adv > summary::after { content: ' ▾'; } details.adv[open] > summary::after { content: ' ▴'; }
 details.adv .card-actions { padding-top: .2rem; }
+
+.ver-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .8rem .2rem 0; font-size: .82rem; opacity: .85; }
+.upd-snack { position: fixed; left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 90; display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem; border-radius: 16px; background: #1f2a24; color: #fff; box-shadow: 0 8px 28px rgba(0,0,0,.35); font-weight: 600; }
+.upd-snack span { flex: 1; } .upd-x { background: none; border: 0; color: #fff; font-size: 1.4rem; line-height: 1; padding: 0 .3rem; opacity: .7; }
 
 </style>
 </head>
@@ -4241,7 +4245,7 @@ details.adv .card-actions { padding-top: .2rem; }
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.0.0';
+  const VERSION = '5.3.0'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
@@ -4475,7 +4479,7 @@ details.adv .card-actions { padding-top: .2rem; }
           : `${UI.emptyState('cloud', 'Use em outros aparelhos', 'Crie uma conta para guardar seus dados na nuvem.', `<button type="button" class="btn primary" data-action="account:open">Entrar ou criar conta</button>`)}`}
       </section>
 
-      <p class="hint" style="text-align:center;padding:.5rem 0 0">Caderninho v${VERSION} · Feito pela Purytalent</p>`;
+      <div class="ver-row"><span>Caderninho <b>v${VERSION}</b> · Feito pela Purytalent</span><button type="button" class="btn small" data-action="app:checkupdate">Verificar atualização</button></div>`;
   }
 
   /* ---------- Ações do perfil ---------- */
@@ -6633,6 +6637,43 @@ details.adv .card-actions { padding-top: .2rem; }
     var n = navigator, low = (n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 4);
     if (low || /[?&]lite=1/.test(location.search)) document.documentElement.classList.add('lite');
   } catch (e) { /* ok */ }
+})();
+
+(function () {
+  'use strict';
+  var C = window.Caderninho; if (!C) return;
+  var cur = window.__CAD_VERSION || '0';
+  var base = location.protocol === 'https:' ? location.origin + location.pathname.replace(/[^\/]*$/, '') : null; // pasta do app
+  var last = 0, shown = false;
+  function num(v) { return String(v).split('.').map(function (x) { return +x || 0; }); }
+  function newer(a, b) { var x = num(a), y = num(b); for (var i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; }
+  function latest() {
+    if (!base) return Promise.resolve(null);
+    return fetch(base + 'index.html?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (h) { var m = h && /const VERSION = '([\d.]+)'/.exec(h); return m ? m[1] : null; })
+      .catch(function () { return null; });
+  }
+  function apply() { location.replace(base + 'index.html?v=' + Date.now()); }
+  function snack(v) {
+    if (shown) return; shown = true;
+    var d = document.createElement('div'); d.className = 'upd-snack'; d.setAttribute('role', 'status');
+    d.innerHTML = '<span>Nova versão <b></b> pronta.</span><button type="button" class="btn small primary">Atualizar</button><button type="button" class="upd-x" aria-label="Fechar">×</button>';
+    d.querySelector('b').textContent = 'v' + v;
+    d.querySelector('.primary').addEventListener('click', apply);
+    d.querySelector('.upd-x').addEventListener('click', function () { d.remove(); });
+    document.body.appendChild(d);
+  }
+  function check(manual) {
+    return latest().then(function (v) {
+      last = Date.now();
+      if (v && newer(v, cur)) { snack(v); if (manual) C.UI.toast('Nova versão v' + v + ' disponível. Toque em Atualizar.', 'info'); }
+      else if (manual) C.UI.toast(v ? 'Você já está na versão mais nova (v' + cur + ').' : 'Não consegui verificar agora. Confira a internet.', v ? 'success' : 'info');
+    });
+  }
+  C.Actions['app:checkupdate'] = function () { check(true); };
+  setTimeout(function () { check(false); }, 5000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - last > 5 * 60000) check(false); });
 })();
 
 </script>
