@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=13; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=14; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Caderninho · Purytalent</title>
@@ -1071,6 +1071,9 @@ details.adv .card-actions { padding-top: .2rem; }
 .legal-ov { position: fixed; inset: 0; z-index: 700; display: flex; flex-direction: column; background: var(--paper, #f6f3ec); }
 .legal-bar { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: calc(.6rem + env(safe-area-inset-top, 0px)) .9rem .6rem; border-bottom: 1px solid rgba(128,128,128,.25); }
 .legal-ov iframe { flex: 1; width: 100%; border: 0; background: transparent; }
+
+/* barra do sistema transparente: uma faixa suave na cor do app atrás dos botões, para o conteúdo não ficar embaixo deles */
+body::after { content: ''; position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; pointer-events: none; height: calc(env(safe-area-inset-bottom, 0px) + 6px); background: linear-gradient(to top, var(--paper) 60%, transparent); }
 
 </style>
 </head>
@@ -3443,6 +3446,15 @@ details.adv .card-actions { padding-top: .2rem; }
           clearErrors(form);
           const a = U.parseMoney(el.amount.value);
           if (a <= 0) return fieldError(el.amount, 'Digite quanto você guardou.');
+          const free = Store.totals(Store.get().transactions).net;
+          if (a > free && !form.dataset.ok) {
+            UI.confirmDialog({
+              title: 'Isso é mais do que você tem',
+              message: free > 0 ? `Você tem ${UI.money(free)} livres. Guardar ${UI.money(a)} deixa o seu saldo no vermelho (${UI.money(free - a)}). Guardar assim mesmo?` : `Você não tem saldo livre agora (${UI.money(free)}). Guardar ${UI.money(a)} deixa o seu saldo mais negativo. Guardar assim mesmo?`,
+              okLabel: 'Guardar assim mesmo', cancelLabel: 'Voltar',
+            }).then((yes) => { if (yes) { form.dataset.ok = '1'; if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event('submit', { cancelable: true })); } });
+            return;
+          }
           const ok = safely(() => {
             Game.lastGain = 0;
             const wasOpen = !g.doneAt;
@@ -4271,7 +4283,7 @@ details.adv .card-actions { padding-top: .2rem; }
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.4.0'; window.__CAD_VERSION = VERSION;
+  const VERSION = '5.4.1'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
@@ -6734,6 +6746,19 @@ details.adv .card-actions { padding-top: .2rem; }
   }
   window.addEventListener('popstate', function () { close(); });
   C.Actions['legal:open'] = open;
+})();
+
+(function () {
+  'use strict';
+  var N = window.CaderninhoNative; if (!N || typeof N.setBars !== 'function') return;
+  function dark() {
+    var t = document.documentElement.getAttribute('data-theme');
+    return t === 'dark' || (t !== 'light' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+  function push() { try { N.setBars(dark()); } catch (e) { /* ok */ } }
+  push();
+  new MutationObserver(push).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (window.matchMedia) { var m = window.matchMedia('(prefers-color-scheme: dark)'); if (m.addEventListener) m.addEventListener('change', push); else if (m.addListener) m.addListener(push); }
 })();
 
 </script>
