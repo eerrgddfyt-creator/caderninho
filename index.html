@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=15; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=16; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Caderninho · Purytalent</title>
@@ -4328,7 +4328,7 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.5.0'; window.__CAD_VERSION = VERSION;
+  const VERSION = '5.5.1'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
@@ -4546,6 +4546,7 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
         ${row('bulb', 'Rever a apresentação', 'O passeio com o Tim e as perguntas iniciais', act('onb:replay', 'Abrir'))}
         ${row('bell', 'Som de abertura', 'O "tim" da animação inicial', sw('sound', !p.muteSound))}
         ${global.CaderninhoNative && global.CaderninhoNative.setNotifications ? row('bell', 'Lembretes de contas', 'Aviso às 9h das contas que vencem hoje, amanhã ou já venceram', sw('notif', !!global.CaderninhoNative.notificationsEnabled())) : ''}
+        ${global.CaderninhoNative && global.CaderninhoNative.widgetSupported && global.CaderninhoNative.widgetSupported() ? row('phone', 'Widget na tela inicial', 'Saldo do mês e próxima conta sem abrir o app', act('widget:add', 'Adicionar', 'primary')) : ''}
         ${canInstall ? row('phone', 'Instalar o app', 'Atalho na tela inicial, abre sem barra do navegador', act('app:install', 'Instalar', 'primary')) : ''}
       </section>
 
@@ -6840,6 +6841,12 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
     var el = sw(); if (el) el.checked = !!ok;
     if (ok) { push(); toast('Lembretes ligados: aviso todo dia às 9h', 'success'); }
     else toast('Sem permissão. Ative as notificações do Caderninho nas configurações do celular.');
+  };
+  C.Actions['widget:add'] = function () {
+    var ok = false;
+    try { ok = N.pinWidget(); } catch (e) { /* ok */ }
+    if (ok) push();
+    else toast('Seu celular não deixa adicionar por aqui. Segure a tela inicial, toque em Widgets e escolha Caderninho.');
   };
   C.Actions['pref:notif'] = function (el) {
     var ok = false;
