@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=12; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=13; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Caderninho · Purytalent</title>
@@ -1065,6 +1065,12 @@ details.adv .card-actions { padding-top: .2rem; }
 
 /* o conteúdo da apresentação some suavemente ao subir por baixo da barra do topo (não sobrepõe mais o Tim/progresso) */
 .ob-body { -webkit-mask-image: linear-gradient(to bottom, transparent calc(2.4rem + env(safe-area-inset-top, 0px)), #000 calc(3.9rem + env(safe-area-inset-top, 0px))); mask-image: linear-gradient(to bottom, transparent calc(2.4rem + env(safe-area-inset-top, 0px)), #000 calc(3.9rem + env(safe-area-inset-top, 0px))); }
+
+.ob-linkbtn { background: none; border: 0; padding: 0; margin: 0; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+.ob-consent { align-items: flex-start; line-height: 1.35; }
+.legal-ov { position: fixed; inset: 0; z-index: 700; display: flex; flex-direction: column; background: var(--paper, #f6f3ec); }
+.legal-bar { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: calc(.6rem + env(safe-area-inset-top, 0px)) .9rem .6rem; border-bottom: 1px solid rgba(128,128,128,.25); }
+.legal-ov iframe { flex: 1; width: 100%; border: 0; background: transparent; }
 
 </style>
 </head>
@@ -2797,6 +2803,14 @@ details.adv .card-actions { padding-top: .2rem; }
     clearTimeout(timer);
     saveSession(null);
   }
+  /* Exclui a conta (login + dados da nuvem) pela função delete_my_account do banco. Os dados do aparelho ficam. */
+  async function deleteAccount() {
+    const token = await ensureToken();
+    const r = await http('/rest/v1/rpc/delete_my_account', { method: 'POST', token, body: {} });
+    if (!r.ok) throw new Error(r.status === 404 ? 'A exclusão de conta ainda não foi ativada no servidor.' : failMsg(r));
+    clearTimeout(timer);
+    saveSession(null);
+  }
 
   /* ---------- Dados na nuvem ---------- */
   async function pull() {
@@ -2876,7 +2890,7 @@ details.adv .card-actions { padding-top: .2rem; }
   }
 
   C.Sync = {
-    isConfigured, isLoggedIn, init, signIn, signUp, signOut, recover, continueWith, syncNow, schedule,
+    isConfigured, isLoggedIn, init, signIn, signUp, signOut, deleteAccount, recover, continueWith, syncNow, schedule,
     user: () => (session ? session.user : null),
     status: () => Object.assign({ configured: isConfigured(), loggedIn: !!session, email: session ? session.user.email : '' }, st),
     onChange: (fn) => listeners.push(fn),
@@ -3722,6 +3736,12 @@ details.adv .card-actions { padding-top: .2rem; }
     await C.Sync.signOut();
     UI.toast('Você saiu da conta', 'info');
   };
+  A['account:delete'] = async () => {
+    const yes = await UI.confirmDialog({ title: 'Excluir a sua conta?', message: 'Isso apaga o seu login e todos os seus dados da nuvem, e não dá para desfazer. Os dados que estão neste aparelho continuam aqui. Antes, se quiser, baixe uma cópia em "Baixar meus dados".', okLabel: 'Excluir minha conta', danger: true });
+    if (!yes) return;
+    try { await C.Sync.deleteAccount(); UI.toast('Conta excluída. Seus dados continuam neste aparelho.', 'success'); }
+    catch (e) { UI.toast((e && e.message) || 'Não consegui excluir agora. Tente de novo.', 'error'); }
+  };
   A['tx:new'] = (el) => openTransactionForm({ type: el.dataset.type });
   A['tx:edit'] = (el) => {
     const tx = Store.getTransaction(el.dataset.id);
@@ -4251,7 +4271,7 @@ details.adv .card-actions { padding-top: .2rem; }
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.3.3'; window.__CAD_VERSION = VERSION;
+  const VERSION = '5.4.0'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
@@ -4473,7 +4493,13 @@ details.adv .card-actions { padding-top: .2rem; }
 
       <h2 class="section-title">${I('shield')} Sua privacidade</h2>
       <section class="card">
-        ${UI.emptyState('shield', 'Em breve', 'Aqui vamos explicar, em palavras simples, como os seus dados são guardados e protegidos.')}
+        ${row('shield', 'Você manda nos seus dados', 'Sem conta, tudo fica só neste aparelho. Com conta, uma cópia fica também na nuvem, só sua. Não vendemos dados nem mostramos anúncios.')}
+        <div class="card-actions" style="display:grid;gap:.5rem">
+          ${act('legal:open', I('file') + ' Ler a Política de Privacidade e os Termos', 'primary')}
+          ${act('data:export', I('download') + ' Baixar meus dados (.json)')}
+          ${act('data:clear', I('trash') + ' Apagar os dados deste aparelho')}
+          ${sync && sync.loggedIn ? act('account:delete', I('trash') + ' Excluir minha conta e os dados da nuvem', 'danger') : ''}
+        </div>
       </section>
 
       <h2 class="section-title">${I('cloud')} Conta e nuvem</h2>
@@ -6157,6 +6183,7 @@ details.adv .card-actions { padding-top: .2rem; }
           <label class="ob-field"><span>Seu e-mail</span><input class="ob-input" type="email" name="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="voce@exemplo.com" ${cloudOn() ? '' : 'disabled'}></label>
           <label class="ob-field"><span>Senha <em data-hint style="font-weight:500;opacity:.8">(mínimo 8 caracteres)</em></span><input class="ob-input" type="password" name="password" autocomplete="new-password" maxlength="72" ${cloudOn() ? '' : 'disabled'}></label>
           <label class="ob-check"><input type="checkbox" name="show" ${cloudOn() ? '' : 'disabled'}> Mostrar a senha</label>
+          <label class="ob-check ob-consent" data-consent><input type="checkbox" name="consent" ${cloudOn() ? '' : 'disabled'}> <span>Tenho <b>18 anos ou mais</b> e concordo com os <button type="button" class="ob-linkbtn" data-action="legal:open">Termos e a Política de Privacidade</button>.</span></label>
           <p class="ob-msg" data-msg role="alert" hidden></p>
           <button type="button" class="ob-link" data-forgot hidden>Esqueci minha senha</button>
         </form>`,
@@ -6171,6 +6198,7 @@ details.adv .card-actions { padding-top: .2rem; }
           p.querySelector('[data-hint]').style.display = mode === 'up' ? '' : 'none';
           el.password.autocomplete = mode === 'in' ? 'current-password' : 'new-password';
           forgot.hidden = mode !== 'in'; say('');
+          p.querySelector('[data-consent]').style.display = mode === 'up' ? '' : 'none';
           x.cta(mode === 'in' ? 'Entrar' : 'Criar minha conta', !working);
         };
         p.querySelectorAll('.ob-seg button').forEach((b) => b.addEventListener('click', () => { if (!working) { mode = b.dataset.m; paint(); } }));
@@ -6185,6 +6213,7 @@ details.adv .card-actions { padding-top: .2rem; }
         const fail = (e) => { say((e && e.message) || 'Não deu certo. Tente de novo.', 'bad'); p.querySelector('.ob-body').classList.remove('ob-shake'); void p.offsetWidth; p.querySelector('.ob-body').classList.add('ob-shake'); };
         x.onCta(async () => {
           if (working) return false;
+          if (mode === 'up' && !el.consent.checked) { fail({ message: 'Para criar a conta, marque a caixinha: 18 anos ou mais e os Termos.' }); return false; }
           working = true; x.cta('Aguarde…', false); say('');
           try {
             if (mode === 'in') await sync().signIn(el.email.value, el.password.value);
@@ -6686,6 +6715,25 @@ details.adv .card-actions { padding-top: .2rem; }
   C.Actions['app:checkupdate'] = function () { check(true); };
   setTimeout(function () { check(false); }, 5000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - last > 5 * 60000) check(false); });
+})();
+
+(function () {
+  'use strict';
+  var C = window.Caderninho; if (!C) return;
+  var URLP = 'privacidade.html';
+  function close() { var o = document.getElementById('legalOv'); if (o) o.remove(); }
+  function open() {
+    if (document.getElementById('legalOv')) return;
+    var o = document.createElement('div'); o.id = 'legalOv'; o.className = 'legal-ov';
+    o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Política de Privacidade e Termos');
+    o.innerHTML = '<div class="legal-bar"><b>Privacidade e Termos</b><button type="button" class="btn small primary" data-x>Fechar</button></div><iframe title="Política de Privacidade e Termos de Uso"></iframe>';
+    o.querySelector('iframe').src = URLP;
+    o.querySelector('[data-x]').addEventListener('click', function () { close(); if (history.state && history.state.legal) history.back(); });
+    document.body.appendChild(o);
+    try { history.pushState({ legal: 1 }, ''); } catch (e) { /* ok */ }
+  }
+  window.addEventListener('popstate', function () { close(); });
+  C.Actions['legal:open'] = open;
 })();
 
 </script>
