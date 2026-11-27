@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=16; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=17; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Caderninho · Purytalent</title>
@@ -456,7 +456,7 @@ main#view > * { min-width: 0; }
 .ghost-view { background: transparent; }
 
 /* ---------- Cabeçalho ---------- */
-.app-header { background: color-mix(in srgb, var(--paper) 74%, transparent); backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5); border-bottom: 1px solid transparent; transition: border-color .25s, box-shadow .25s; }
+.app-header { background: color-mix(in srgb, var(--paper) 74%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid transparent; transition: border-color .25s, box-shadow .25s; }
 body.scrolled .app-header { border-bottom-color: var(--line); box-shadow: 0 8px 24px rgba(23,35,29,.07); }
 .brand { font-size: 1.22rem; letter-spacing: -.05em; font-weight: 800; }
 .brand img { width: 2.25rem; height: 2.25rem; border-radius: .7rem; box-shadow: 0 3px 10px rgba(31,122,77,.35); }
@@ -470,7 +470,7 @@ body.scrolled .app-header { border-bottom-color: var(--line); box-shadow: 0 8px 
 
 /* ---------- Barra de abas flutuante ---------- */
 .tabbar { left: .8rem; right: .8rem; bottom: calc(.75rem + var(--sab)); height: 4.3rem; padding: .3rem; border-radius: 1.9rem; border: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
-  background: color-mix(in srgb, var(--card) 86%, transparent); backdrop-filter: blur(22px) saturate(1.6); -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  background: color-mix(in srgb, var(--card) 86%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 16px 36px rgba(15,40,28,.22), 0 2px 8px rgba(15,40,28,.08); }
 @media (min-width: 700px) { .tabbar { left: 50%; right: auto; width: min(34rem, calc(100% - 1.6rem)); transform: translateX(-50%); border-radius: 1.9rem; border: 1px solid color-mix(in srgb, var(--line) 85%, transparent); } }
 .tab-ind { position: absolute; top: .3rem; bottom: .3rem; left: .3rem; width: calc((100% - .6rem) / 5); border-radius: 1.5rem; background: linear-gradient(160deg, var(--green-soft), color-mix(in srgb, var(--green) 18%, var(--card))); transform: translateX(calc(var(--i, 0) * 100%)); transition: transform .55s cubic-bezier(.3, 1.35, .5, 1), opacity .3s; z-index: 0; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--green) 18%, transparent); }
@@ -606,7 +606,7 @@ body.dial-open .toasts { z-index: 40; }
 .balance .eyebrow { font-weight: 700; letter-spacing: .01em; font-size: .86rem; opacity: .92; }
 .balance .big { font-size: var(--fs-big); letter-spacing: -.055em; }
 .hero-spark { height: 2.7rem; margin: -.2rem -.15rem 0; } .hero-spark svg { width: 100%; height: 100%; display: block; }
-.balance .split > div { display: flex; align-items: center; gap: .6rem; background: rgba(255,255,255,.13); border-radius: 1.05rem; padding: .6rem .7rem; backdrop-filter: blur(4px); }
+.balance .split > div { display: flex; align-items: center; gap: .6rem; background: rgba(255,255,255,.17); border-radius: 1.05rem; padding: .6rem .7rem; }
 .balance .split .dot { width: 2.1rem; height: 2.1rem; border-radius: .75rem; background: rgba(255,255,255,.18); display: grid; place-items: center; flex: none; }
 .balance .split .in .dot { background: rgba(120,240,170,.3); } .balance .split .out .dot { background: rgba(255,160,130,.34); }
 .sp-t { display: grid; min-width: 0; } .balance .split b { font-size: 1.02rem; letter-spacing: -.03em; overflow: hidden; text-overflow: ellipsis; }
@@ -734,7 +734,7 @@ body.dial-open .toasts { z-index: 40; }
 .mdl.locked { opacity: .7; }
 .medal { position: relative; width: 3.6rem; height: 4.3rem; display: block; }
 .medal svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 4px rgba(0,0,0,.18)); }
-.medal.on svg { animation: medalShine 4s ease-in-out infinite; } @keyframes medalShine { 0%, 100% { filter: drop-shadow(0 4px 4px rgba(0,0,0,.18)) brightness(1); } 50% { filter: drop-shadow(0 4px 6px rgba(0,0,0,.2)) brightness(1.12); } }
+.medal.on svg { filter: drop-shadow(0 4px 5px rgba(0,0,0,.19)); animation: medalShine 4s ease-in-out infinite; } @keyframes medalShine { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }
 .medal-ic { position: absolute; left: 0; right: 0; top: .78rem; height: 2.1rem; display: grid; place-items: center; color: #fff; }
 .medal.off .medal-ic { color: #8c8774; }
 .medal-ic .ic { width: 1.35rem; height: 1.35rem; stroke-width: 2.5; filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
@@ -797,16 +797,16 @@ body.no-help .helpbox { display: none; }
 /* ---------- Abertura (sem botão de pular) ---------- */
 .splash { background: radial-gradient(120% 90% at 50% 28%, #34a872 0%, #1f7a4d 42%, #0b3d26 100%); overflow: hidden; gap: .4rem; }
 .splash .skip { display: none !important; }
-.sp-glow { position: absolute; left: 50%; top: 42%; width: 30rem; height: 30rem; margin: -15rem 0 0 -15rem; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,226,130,.38), rgba(255,226,130,0) 70%); animation: spGlow 3.2s ease-out both; }
+.sp-glow { position: absolute; left: 50%; top: 42%; width: 22rem; height: 22rem; margin: -11rem 0 0 -11rem; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,226,130,.38), rgba(255,226,130,0) 70%); animation: spGlow 3.2s ease-out both; }
 @keyframes spGlow { 0% { transform: scale(.2); opacity: 0; } 35% { opacity: 1; } 100% { transform: scale(1.15); opacity: .5; } }
 .sp-rings { position: absolute; left: 50%; top: 42%; width: 0; height: 0; }
 .sp-rings i { position: absolute; left: 0; top: 0; width: 8rem; height: 8rem; margin: -4rem 0 0 -4rem; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); opacity: 0; animation: spRing 2.4s ease-out both; }
 .sp-rings i:nth-child(2) { animation-delay: .25s; } .sp-rings i:nth-child(3) { animation-delay: .5s; }
-@keyframes spRing { 0% { transform: scale(.4); opacity: .7; } 100% { transform: scale(4.6); opacity: 0; } }
+@keyframes spRing { 0% { transform: scale(.4); opacity: .7; } 100% { transform: scale(3.4); opacity: 0; } }
 .sp-coins { position: absolute; inset: 0; pointer-events: none; }
 .sp-coins i { position: absolute; top: -2rem; left: var(--x); width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff2a8, #f7bd2b 55%, #d28a05); border: 2px solid #b97800; opacity: .85; animation: spFall var(--d) cubic-bezier(.35, .1, .65, 1) var(--w) both; }
-@keyframes spFall { from { transform: translateY(-3rem) rotate(0) rotateY(0); } to { transform: translateY(115vh) rotate(380deg) rotateY(720deg); } }
-.splash svg.logo { position: relative; width: 13rem; height: 13rem; overflow: visible; filter: drop-shadow(0 18px 24px rgba(0,0,0,.35)); }
+@keyframes spFall { from { transform: translateY(-3rem) rotate(0); } to { transform: translateY(115vh) rotate(380deg); } }
+.splash svg.logo { position: relative; width: 13rem; height: 13rem; overflow: visible;  }
 .splash .lg-book { transform-box: view-box; transform-origin: 512px 640px; animation: lgBook .95s cubic-bezier(.2, 1.4, .4, 1) .15s both; }
 @keyframes lgBook { from { transform: translateY(260px) rotate(-40deg) scale(.3); opacity: 0; } }
 .splash .lg-coin { transform-box: fill-box; transform-origin: center; animation: lgCoin 1.05s cubic-bezier(.3, 1.5, .5, 1) .75s both; }
@@ -817,7 +817,7 @@ body.no-help .helpbox { display: none; }
 .splash .name span { display: inline-block; opacity: 0; transform: translateY(.9em) rotate(10deg) scale(.7); animation: nmIn .7s cubic-bezier(.2, 1.7, .4, 1) calc(1.45s + var(--i) * .055s) forwards; }
 @keyframes nmIn { to { opacity: 1; transform: none; } }
 .splash .by { animation-delay: 2.2s; font-weight: 600; }
-.splash.leave { transform: scale(1.08); filter: blur(6px); transition: opacity .55s, visibility .55s, transform .55s, filter .55s; }
+.splash.leave { transform: scale(1.04); transition: opacity .4s, visibility .4s, transform .4s; }
 
 /* ---------- Telas largas ---------- */
 @media (min-width: 700px) { main#view { max-width: 36rem; } .toasts { width: min(92vw, 26rem); } }
@@ -1084,7 +1084,7 @@ body::after { content: ''; position: fixed; left: 0; right: 0; bottom: 0; z-inde
 /* ---- barra de abas em vidro (estilo iPhone) ---- */
 .tabbar {
   background: rgba(255,255,255,.38);
-  backdrop-filter: blur(28px) saturate(1.9) brightness(1.04); -webkit-backdrop-filter: blur(28px) saturate(1.9) brightness(1.04);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,.62);
   box-shadow: 0 14px 34px rgba(15,40,28,.18), 0 2px 6px rgba(15,40,28,.08),
               inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 0 rgba(255,255,255,.18), inset 0 0 18px rgba(255,255,255,.14);
@@ -1120,6 +1120,13 @@ html.lite .tabbar::before { display: none; }
 
 /* faixa atrás da barra de navegação do celular: transparente, só um véu bem leve para os botões ficarem legíveis */
 body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper) 45%, transparent), transparent); }
+</style>
+<style id="perf560">
+.ghost-view, .ghost-view * { animation: none !important; }
+.ghost-view { contain: layout paint style; will-change: transform, opacity; }
+.paused, .paused * { animation-play-state: paused !important; }
+html.lite .ghost-view { display: none; }
+html.lite .sp-glow, html.lite .sp-rings { display: none; }
 </style>
 </head>
 <body>
@@ -4328,7 +4335,7 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.5.1'; window.__CAD_VERSION = VERSION;
+  const VERSION = '5.6.0'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
@@ -5865,7 +5872,7 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
   /* ---------- Transição entre telas ---------- */
   let dir = 1;
   function before(main, route, prev) {
-    if (!prev || route === prev || reduced() || !main.firstElementChild) return;
+    if (!prev || route === prev || reduced() || !main.firstElementChild || doc.documentElement.classList.contains('lite')) return;
     dir = ORDER.indexOf(route) >= ORDER.indexOf(prev) ? 1 : -1;
     try {
       const r = main.getBoundingClientRect();
@@ -5874,9 +5881,9 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
       g.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;margin:0;pointer-events:none;z-index:25;`;
       g.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
       doc.body.appendChild(g);
-      const a = g.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: `translateX(${-dir * 34}px) scale(.97)`, filter: 'blur(2px)' }], { duration: 260, easing: 'ease-in', fill: 'forwards' });
+      const a = g.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * 28}px)` }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
       a.onfinish = () => g.remove();
-      setTimeout(() => g.remove(), 600);
+      setTimeout(() => g.remove(), 400);
     } catch (e) { /* sem transição, tudo bem */ }
   }
 
@@ -5884,11 +5891,14 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
     root.querySelectorAll('.cu .money[data-c]').forEach((el) => {
       const to = Number(el.dataset.c);
       if (!Number.isFinite(to) || to === 0) return;
-      const t0 = performance.now(), dur = Math.min(1100, 500 + Math.log10(Math.abs(to) + 10) * 90);
+      const t0 = performance.now(), dur = Math.min(800, 450 + Math.log10(Math.abs(to) + 10) * 60);
       const ease = (x) => 1 - Math.pow(1 - x, 4);
       el.textContent = U.formatMoney(0);
+      let last = 0;
       const step = (now) => {
         const k = Math.min(1, (now - t0) / dur);
+        if (k < 1 && now - last < 32) { if (el.isConnected) global.requestAnimationFrame(step); return; }
+        last = now;
         el.textContent = U.formatMoney(Math.round(to * ease(k)));
         if (k < 1 && el.isConnected) global.requestAnimationFrame(step); else el.textContent = U.formatMoney(to);
       };
@@ -5898,10 +5908,11 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
 
   function enter(main, swapping, first) {
     if (reduced()) return;
-    if (swapping) main.animate([{ opacity: 0, transform: `translateX(${dir * 36}px) scale(.985)` }, { opacity: 1, transform: 'none' }], { duration: 440, easing: SPRING });
+    if (swapping) main.animate([{ opacity: 0, transform: `translateX(${dir * 36}px) scale(.985)` }, { opacity: 1, transform: 'none' }], { duration: 360, easing: SPRING });
+    const lite = doc.documentElement.classList.contains('lite');
     const kids = Array.from(main.children).filter((n) => !n.classList.contains('banner'));
-    kids.slice(0, 14).forEach((el, i) => {
-      el.animate([{ opacity: 0, transform: 'translateY(18px) scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: 520, delay: (first ? 120 : 60) + i * 55, easing: SPRING, fill: 'backwards' });
+    kids.slice(0, lite ? 0 : 9).forEach((el, i) => {
+      el.animate([{ opacity: 0, transform: 'translateY(18px) scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: 400, delay: (first ? 100 : 40) + i * 38, easing: SPRING, fill: 'backwards' });
     });
     const strip = main.querySelector('.strip');
     if (strip) Array.from(strip.children).forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateX(40px)' }, { opacity: 1, transform: 'none' }], { duration: 480, delay: 320 + i * 70, easing: SPRING, fill: 'backwards' }));
@@ -5909,8 +5920,17 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
     main.querySelectorAll('.sparkline .sl, .spark .sl').forEach((p) => { p.style.strokeDasharray = '100'; p.animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }], { duration: 1100, delay: 300, easing: 'ease-out', fill: 'backwards' }); });
   }
 
+  let pauseIO = null;
+  function pauseOff(main) {
+    if (!global.IntersectionObserver) return;
+    if (pauseIO) pauseIO.disconnect();
+    pauseIO = new global.IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('paused', !e.isIntersecting)), { rootMargin: '80px' });
+    Array.from(main.children).forEach((n) => pauseIO.observe(n));
+  }
+
   function after(main, route, swapping, first) {
     const fresh = swapping || first;
+    try { pauseOff(main); } catch (e) { /* opcional */ }
     Art.animateIn(main, fresh);
     if (fresh) { countUp(main); enter(main, swapping, first); }
     paintTabs(route);
@@ -6735,7 +6755,24 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
 (function () {
   try {
     var n = navigator, low = (n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 4);
-    if (low || /[?&]lite=1/.test(location.search)) document.documentElement.classList.add('lite');
+    var saved = null; try { saved = localStorage.getItem('cadPerf'); } catch (e) { /* ok */ }
+    if (/[?&]lite=0/.test(location.search)) { saved = null; low = false; }
+    if (low || saved === 'lite' || /[?&]lite=1/.test(location.search)) document.documentElement.classList.add('lite');
+    // mede a fluidez na abertura; o resultado vale para os próximos inícios
+    var hidden = false, d = [], last = 0, t0 = performance.now();
+    document.addEventListener('visibilitychange', function () { hidden = true; });
+    (function tick(now) {
+      if (hidden) return;
+      if (last && now - t0 > 700) d.push(now - last);
+      last = now;
+      if (now - t0 < 3200) return requestAnimationFrame(tick);
+      if (d.length < 40) return;
+      var slow = d.filter(function (x) { return x > 50; }).length / d.length;
+      var avg = 1000 / (d.reduce(function (a, b) { return a + b; }, 0) / d.length);
+      var bad = slow > 0.25 || avg < 30;
+      try { localStorage.setItem('cadPerf', bad ? 'lite' : 'full'); } catch (e) { /* ok */ }
+      if (bad && avg < 24) document.documentElement.classList.add('lite');
+    })(t0);
   } catch (e) { /* ok */ }
 })();
 
