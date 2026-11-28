@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=18; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=19; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Caderninho · Purytalent</title>
@@ -611,8 +611,6 @@ body.dial-open .toasts { z-index: 40; }
 .balance .split .in .dot { background: rgba(120,240,170,.3); } .balance .split .out .dot { background: rgba(255,160,130,.34); }
 .sp-t { display: grid; min-width: 0; } .balance .split b { font-size: 1.02rem; letter-spacing: -.03em; overflow: hidden; text-overflow: ellipsis; }
 .balance .saved-note { font-weight: 600; }
-.balance.gold-hero { background: linear-gradient(155deg, #ffd24f 0%, #f1ad1c 55%, #d28706 100%); color: #3a2400; box-shadow: 0 18px 36px rgba(217,138,11,.32); }
-.balance.gold-hero .bar { background: rgba(58,36,0,.18); } .balance.gold-hero .bar > i { background: #fff; }
 .eye-btn { transition: transform .1s, background .2s; } .eye-btn:active { transform: scale(.9); }
 
 /* ---------- Atalhos grandes ---------- */
@@ -1127,6 +1125,25 @@ body::after { background: linear-gradient(to top, color-mix(in srgb, var(--paper
 .paused, .paused * { animation-play-state: paused !important; }
 html.lite .ghost-view { display: none; }
 html.lite .sp-glow, html.lite .sp-rings { display: none; }
+</style>
+<style id="gbar571">
+@property --p { syntax: '<number>'; inherits: true; initial-value: 0; }
+@keyframes gbIn { from { --p: 0; } }
+.gbar { gap: .45rem; }
+.gb-head { display: flex; align-items: center; justify-content: space-between; }
+.gb-label { font-size: var(--fs-small); font-weight: 700; color: var(--ink-2); }
+.gb-big { margin: 0; font-size: var(--fs-big); font-weight: 800; letter-spacing: -.05em; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--ink); }
+.gb-track { position: relative; height: .9rem; margin: 2.4rem .8rem .5rem; animation: gbIn .9s cubic-bezier(.3, 1, .4, 1) both; }
+.gb-rail { position: absolute; inset: 0; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--line); box-sizing: border-box; }
+.gb-fill { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p) * 100%); border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--green) 72%, #000), var(--green) 55%, color-mix(in srgb, var(--green) 72%, #fff)); }
+.gb-knob { position: absolute; top: 50%; left: calc(var(--p) * 100%); width: 1.6rem; height: 1.6rem; margin: -.8rem 0 0 -.8rem; border-radius: 50%; background: #fff; border: .3rem solid var(--green); box-sizing: border-box; }
+.gb-tip { position: absolute; left: calc(var(--p) * 100%); bottom: calc(100% + .8rem); transform: translateX(calc(-1 * (.7rem + var(--p) * (100% - 1.4rem)))); padding: .28rem .7rem; border-radius: .7rem; background: var(--gold); color: #3a2800; font-size: var(--fs-small); font-weight: 800; line-height: 1.2; white-space: nowrap; min-width: 1.4rem; text-align: center; }
+.gb-tip::after { content: ''; position: absolute; top: 100%; left: calc(.7rem + var(--p) * (100% - 1.4rem)); margin-left: -.35rem; border: .35rem solid transparent; border-top-color: var(--gold); }
+.gb-tip.done { background: var(--green); color: #fff; } .gb-tip.done::after { border-top-color: var(--green); }
+.gb-scale { display: flex; justify-content: space-between; margin: 0 .8rem; font-size: var(--fs-tiny); font-weight: 700; color: var(--ink-2); }
+.gb-note { margin: .2rem 0 0; font-size: var(--fs-small); font-weight: 600; color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { .gb-track { animation: none; } }
+html.lite .gb-track { animation: none; }
 </style>
 </head>
 <body>
@@ -4335,7 +4352,7 @@ html.lite .sp-glow, html.lite .sp-rings { display: none; }
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.7.0'; window.__CAD_VERSION = VERSION;
+  const VERSION = '5.7.1'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
@@ -5864,7 +5881,11 @@ html.lite .sp-glow, html.lite .sp-rings { display: none; }
   function goalsRender() {
     const goals = Store.get().goals.slice().sort((a, b) => (a.doneAt ? 1 : 0) - (b.doneAt ? 1 : 0) || b.createdAt - a.createdAt);
     const totalSaved = U.sum(goals, (g) => g.saved), totalTarget = U.sum(goals, (g) => g.target);
-    const hero = goals.length ? `<section class="card balance hero gold-hero"><p class="eyebrow"><span>Você já guardou</span></p><p class="big cu">${$m(totalSaved)}</p>${UI.progressBar(totalTarget ? totalSaved / totalTarget : 0)}<p class="saved-note">${I('target')} ${goals.filter((g) => g.doneAt).length} de ${goals.length} ${plural(goals.length, 'meta batida', 'metas batidas')} · alvo total ${$m(totalTarget)}</p></section>` : '';
+    const ratio = totalTarget > 0 ? Math.max(0, Math.min(1, totalSaved / totalTarget)) : 0;
+    const allDone = totalTarget > 0 && ratio >= 1;
+    const pct = allDone ? 100 : (ratio > 0 ? Math.min(99, Math.max(1, Math.round(ratio * 100))) : 0);
+    const nDone = goals.filter((g) => g.doneAt).length;
+    const hero = goals.length ? `<section class="card gbar"><div class="gb-head"><span class="gb-label">Você já guardou</span><span class="mini-ic gold">${I('target')}</span></div><p class="gb-big cu">${$m(totalSaved)}</p><div class="gb-track" style="--p:${ratio.toFixed(4)}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Progresso total das metas"><i class="gb-rail"></i><i class="gb-fill"></i><b class="gb-knob"></b><span class="gb-tip${allDone ? ' done' : ''}">${allDone ? 'Meta batida!' : pct + '%'}</span></div><div class="gb-scale"><span>R$ 0</span><span>Alvo ${U.formatMoney(totalTarget)}</span></div><p class="gb-note">${nDone} de ${goals.length} ${plural(goals.length, 'meta batida', 'metas batidas')}</p></section>` : '';
     return `${head('Metas', 'Guardar aos poucos também é vencer.')}
       ${hero}
       <button type="button" class="btn primary block" ${act('goal:new')}>${I('plus')} Nova meta</button>
