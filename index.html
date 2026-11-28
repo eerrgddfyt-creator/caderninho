@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>const APP_V=17; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
+<script>const APP_V=18; /* aumente a cada versão nova */ try{localStorage.setItem("cadTry",0)}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Caderninho · Purytalent</title>
@@ -4335,7 +4335,7 @@ html.lite .sp-glow, html.lite .sp-rings { display: none; }
   const esc = U.escapeHTML;
   const I = C.Icons.svg;
   const $money = UI.money;
-  const VERSION = '5.6.0'; window.__CAD_VERSION = VERSION;
+  const VERSION = '5.7.0'; window.__CAD_VERSION = VERSION;
 
   /* ======================================================================
      RESUMO
@@ -4774,6 +4774,31 @@ html.lite .sp-glow, html.lite .sp-rings { display: none; }
   }
 
   /** Redesenha a tela atual. Várias chamadas seguidas viram um único redesenho (microtask, não rAF: o rAF congela em segundo plano). */
+  /* v5.7: só troca na tela o que mudou. Cada bloco guarda o HTML de origem (__src);
+     blocos iguais ficam como estão (sem piscar, sem reiniciar animação). Qualquer dúvida = desenho completo. */
+  function setMain(main, full, samePage) {
+    let kids = null, srcs = null;
+    try {
+      const tpl = document.createElement('template');
+      tpl.innerHTML = full;
+      const ok = Array.from(tpl.content.childNodes).every((n) => n.nodeType === 1 || n.nodeType === 8 || (n.nodeType === 3 && !n.nodeValue.trim()));
+      if (ok) { kids = Array.from(tpl.content.children); srcs = kids.map((n) => n.outerHTML); }
+    } catch (e) { kids = null; }
+    const old = Array.from(main.children);
+    if (!kids || !samePage || !old.length || old.some((o) => typeof o.__src !== 'string')) {
+      main.innerHTML = full;
+      if (kids && main.children.length === srcs.length) Array.from(main.children).forEach((c, i) => { c.__src = srcs[i]; });
+      return;
+    }
+    let a = 0;
+    while (a < old.length && a < kids.length && old[a].__src === srcs[a]) a++;
+    let b = 0;
+    while (b < old.length - a && b < kids.length - a && old[old.length - 1 - b].__src === srcs[kids.length - 1 - b]) b++;
+    const ref = b ? old[old.length - b] : null;
+    old.slice(a, old.length - b).forEach((o) => o.remove());
+    kids.slice(a, kids.length - b).forEach((n, i) => { n.__src = srcs[a + i]; main.insertBefore(n, ref); });
+  }
+
   function render() {
     if (queued) return;
     queued = true;
@@ -4791,7 +4816,7 @@ html.lite .sp-glow, html.lite .sp-rings { display: none; }
       applyPrefs();
       const prevRoute = lastRoute;
       if (C.Shell) { try { C.Shell.before(main, route, prevRoute); } catch (e) { console.error(e); } }
-      main.innerHTML = banners() + html;
+      setMain(main, banners() + html, route === lastRoute && main.dataset.route === route);
       main.dataset.route = route;
       paintChrome(route);
       C.Icons.hydrate(main);
